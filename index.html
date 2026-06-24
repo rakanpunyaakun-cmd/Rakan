@@ -567,10 +567,20 @@ const COLORS = {'BTC':'#f7931a','ETH':'#627eea','BNB':'#f3ba2f','SOL':'#9945ff',
 
 async function fetchCrypto() {
   try {
-    const ids = 'bitcoin,ethereum,binancecoin,solana,ripple,cardano,avalanche-2,dogecoin,polkadot,chainlink,matic-network,uniswap,litecoin,cosmos,filecoin,aptos,arbitrum,optimism,injective-protocol,sui';
-    const r = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&per_page=20&sparkline=true&price_change_percentage=24h`);
+    const syms = 'BTC,ETH,BNB,SOL,XRP,ADA,AVAX,DOGE,DOT,LINK,MATIC,UNI,LTC,ATOM,FIL,APT,ARB,OP,INJ,SUI';
+    const r = await fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${syms}&tsyms=USD`);
     if (!r.ok) throw new Error();
-    return await r.json();
+    const json = await r.json();
+    const raw = json.RAW;
+    return Object.keys(raw).map(sym => ({
+      symbol: sym,
+      name: sym,
+      price: raw[sym].USD.PRICE,
+      change: raw[sym].USD.CHANGEPCT24HOUR,
+      mcap: raw[sym].USD.MKTCAP,
+      vol: raw[sym].USD.VOLUME24HOURTO,
+      sparkline: null
+    }));
   } catch { return null; }
 }
 

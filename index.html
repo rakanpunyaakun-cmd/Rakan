@@ -567,20 +567,24 @@ const COLORS = {'BTC':'#f7931a','ETH':'#627eea','BNB':'#f3ba2f','SOL':'#9945ff',
 
 async function fetchCrypto() {
   try {
-    const syms = 'BTC,ETH,BNB,SOL,XRP,ADA,AVAX,DOGE,DOT,LINK,MATIC,UNI,LTC,ATOM,FIL,APT,ARB,OP,INJ,SUI';
-    const r = await fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${syms}&tsyms=USD`);
+    const r = await fetch('https://api.binance.com/api/v3/ticker/24hr');
     if (!r.ok) throw new Error();
-    const json = await r.json();
-    const raw = json.RAW;
-    return Object.keys(raw).map(sym => ({
-      symbol: sym,
-      name: sym,
-      price: raw[sym].USD.PRICE,
-      change: raw[sym].USD.CHANGEPCT24HOUR,
-      mcap: raw[sym].USD.MKTCAP,
-      vol: raw[sym].USD.VOLUME24HOURTO,
-      sparkline: null
-    }));
+    const all = await r.json();
+    const targets = ['BTC','ETH','BNB','SOL','XRP','ADA','AVAX','DOGE','DOT','LINK','MATIC','UNI','LTC','ATOM','FIL','APT','ARB','OP','INJ','SUI'];
+    const NAMES = {BTC:'Bitcoin',ETH:'Ethereum',BNB:'BNB',SOL:'Solana',XRP:'XRP',ADA:'Cardano',AVAX:'Avalanche',DOGE:'Dogecoin',DOT:'Polkadot',LINK:'Chainlink',MATIC:'Polygon',UNI:'Uniswap',LTC:'Litecoin',ATOM:'Cosmos',FIL:'Filecoin',APT:'Aptos',ARB:'Arbitrum',OP:'Optimism',INJ:'Injective',SUI:'Sui'};
+    return targets.map(sym => {
+      const d = all.find(x => x.symbol === sym + 'USDT');
+      if (!d) return null;
+      return {
+        symbol: sym,
+        name: NAMES[sym] || sym,
+        price: parseFloat(d.lastPrice),
+        change: parseFloat(d.priceChangePercent),
+        mcap: null,
+        vol: parseFloat(d.quoteVolume),
+        sparkline: null
+      };
+    }).filter(Boolean);
   } catch { return null; }
 }
 
